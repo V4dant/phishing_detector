@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phishing URL Detector</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Phishing URL Detector</h1>
+    <p class="subtitle">Protect yourself from malicious websites</p>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button id="toggle-theme" aria-label="Toggle Dark Mode">🌙 Dark Mode</button>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>System Ready</span>
+      </div>
+    </div>
+
+    <!-- Explanation Section -->
+    <section class="info">
+      <h2>🛡️ Why Check URLs?</h2>
+      <p>
+        Phishing attacks trick users into revealing sensitive information through fake websites.
+        Our AI-powered detector analyzes URL patterns to help identify potentially malicious sites
+        before you visit them. Stay safe online!
+      </p>
+    </section>
+
+    <!-- URL Input Form -->
+    <div class="form-container">
+      <form action="/predict" method="post" id="url-form">
+        <div class="input-wrapper">
+          <input type="text" name="url" placeholder="Enter URL to analyze (e.g., https://example.com)" required autocomplete="off" />
+          <span class="input-icon">🔗</span>
+        </div>
+        <button type="submit">Analyze URL</button>
+      </form>
+    </div>
+
+    <!-- Loading Animation -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Analyzing URL...</p>
+    </div>
+
+    <!-- Prediction Result -->
+    {% if prediction %}
+    <section class="result {% if '🟢' in prediction %}success{% else %}error{% endif %}" id="result-section">
+      <p><strong>🌐 URL Analyzed:</strong></p>
+      <div class="result-url" id="result-url">{{ url }}</div>
+
+      <p><strong>🔍 Detection Result:</strong></p>
+      <p style="font-size: 1.5em; margin: 15px 0;" id="result-text">{{ prediction }}</p>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-copy" id="copy-url">📋 Copy URL</button>
+        <button class="btn btn-copy" id="copy-result">📋 Copy Result</button>
+        <button class="btn btn-clear" id="clear-result">🗑️ Clear</button>
+      </div>
+
+      <!-- Detailed Explanation -->
+      {% if explanation %}
+      <div class="explanation">
+        <h3>💡 Analysis Explanation</h3>
+        <p>{{ explanation }}</p>
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Security Tips -->
+    <section class="tips">
+      <h2>🔐 Security Best Practices</h2>
+      <ul>
+        <li>Always verify the sender before clicking links in emails or messages</li>
+        <li>Check for HTTPS (🔒) and examine the URL spelling carefully</li>
+        <li>Be wary of urgent messages requesting immediate action</li>
+        <li>Use two-factor authentication on important accounts</li>
+        <li>Keep your browser and security software updated</li>
+        <li>When in doubt, navigate to the site directly instead of clicking links</li>
+      </ul>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Made with ❤️ by Vedant Parte | <a href="https://www.linkedin.com/in/yourprofile" target="_blank" rel="noopener">LinkedIn</a></p>
+      <p style="margin-top: 10px; font-size: 12px; color: #999;">
+        Remember: This tool provides guidance but cannot guarantee 100% accuracy. Always use caution online.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Dark Mode Toggle
+    const toggleBtn = document.getElementById('toggle-theme');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      toggleBtn.textContent = '☀️ Light Mode';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark-mode');
+      toggleBtn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // Form submission with loading
+    const form = document.getElementById('url-form');
+    const loading = document.getElementById('loading');
+
+    form.addEventListener('submit', () => {
+      loading.style.display = 'block';
+    });
+
+    // Copy functionality
+    function copyToClipboard(text, buttonElement) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = buttonElement.textContent;
+        buttonElement.textContent = '✅ Copied!';
+        buttonElement.style.background = 'linear-gradient(45deg, #28a745, #1e7e34)';
+
+        setTimeout(() => {
+          buttonElement.textContent = originalText;
+          buttonElement.style.background = '';
+        }, 2000);
+      }).catch(() => {
+        alert('Failed to copy to clipboard');
+      });
+    }
+
+    // Copy buttons
+    const copyUrlBtn = document.getElementById('copy-url');
+    const copyResultBtn = document.getElementById('copy-result');
+    const clearBtn = document.getElementById('clear-result');
+
+    if (copyUrlBtn) {
+      copyUrlBtn.addEventListener('click', () => {
+        const urlText = document.getElementById('result-url').textContent;
+        copyToClipboard(urlText, copyUrlBtn);
+      });
+    }
+
+    if (copyResultBtn) {
+      copyResultBtn.addEventListener('click', () => {
+        const resultText = document.getElementById('result-text').textContent;
+        const urlText = document.getElementById('result-url').textContent;
+        const fullResult = `URL: ${urlText}\nResult: ${resultText}`;
+        copyToClipboard(fullResult, copyResultBtn);
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (confirm('Clear the current result?')) {
+          window.location.href = '/';
+        }
+      });
+    }
+
+    // Input validation
+    const urlInput = document.querySelector('input[name="url"]');
+    urlInput.addEventListener('input', (e) => {
+      const value = e.target.value;
+      const isValid = value.length > 0 && (value.includes('.') || value.startsWith('http'));
+
+      if (!isValid && value.length > 3) {
+        e.target.style.borderColor = '#dc3545';
+      } else {
+        e.target.style.borderColor = '';
+      }
+    });
+
+    // Hide loading on page load
+    window.addEventListener('load', () => {
+      loading.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
