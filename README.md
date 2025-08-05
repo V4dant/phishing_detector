@@ -1,3 +1,6 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+
 🔐 Phishing URL Detection Using Machine Learning
 
 This project aims to detect phishing URLs by leveraging machine learning techniques to classify URLs as **phishing** or **legitimate**. The model uses multiple URL features along with WHOIS and DNS information to accurately identify malicious URLs, helping to enhance cybersecurity.
@@ -13,7 +16,7 @@ This project aims to detect phishing URLs by leveraging machine learning techniq
 
 🛠 Technology Stack
 
-- Python 3.x
+- Python 3.1
 - Flask (Web framework)
 - Scikit-learn, XGBoost (Machine learning)
 - Pandas, NumPy (Data manipulation)
